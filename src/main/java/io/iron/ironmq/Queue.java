@@ -76,13 +76,35 @@ public class Queue {
     }
     
     /**
-    * Peeking at a queue returns the next messages on the queue, but it does not reserve them. 
-    * If there are no items on the queue, an EmptyQueueException is thrown.
-    *
-    * @throws EmptyQueueException If the queue is empty.
-    * @throws HTTPException If the IronMQ service returns a status other than 200 OK.
-    * @throws IOException If there is an error accessing the IronMQ server.
-    */
+	* Retrieves a specific message from the queue. If there are no items on the queue, an
+	* EmptyQueueException is thrown.
+	* @param numberOfMessages The number of messages to receive. Max. is 100.
+	* @param timeout timeout in seconds.
+	* @throws EmptyQueueException If the queue is empty.
+	* @throws HTTPException If the IronMQ service returns a status other than 200 OK.
+	* @throws IOException If there is an error accessing the IronMQ server.
+	*/
+	public Message get(String id) throws IOException {
+		if (id == null || id.isEmpty()) {
+			throw new IllegalArgumentException("id must neither be null nor empty");
+		}
+
+		String url = "queues/" + name + "/messages/" + id;
+		Reader reader = client.get(url);
+		Gson gson = new Gson();
+		Message message = gson.fromJson(reader, Message.class);
+		reader.close();
+		return message;
+	}
+
+	/**
+	* Peeking at a queue returns the next messages on the queue, but it does not reserve them. 
+	* If there are no items on the queue, an EmptyQueueException is thrown.
+	*
+	* @throws EmptyQueueException If the queue is empty.
+	* @throws HTTPException If the IronMQ service returns a status other than 200 OK.
+	* @throws IOException If there is an error accessing the IronMQ server.
+	*/
     public Message peek() throws IOException {
         Messages msgs = peek(1);
         Message msg;
